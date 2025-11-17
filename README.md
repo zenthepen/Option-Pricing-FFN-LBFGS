@@ -2,7 +2,7 @@
 
 High-performance calibration system for Double Heston stochastic volatility model with jump diffusion, combining L-BFGS optimization with neural network acceleration.
 
-## 🎯 Project Overview
+## Project Overview
 
 This project implements a two-stage calibration approach:
 1. **L-BFGS Baseline**: Accurate but slow optimization (0.34% pricing error, 106s per calibration)
@@ -10,7 +10,7 @@ This project implements a two-stage calibration approach:
 
 **Key Achievement**: Fine-tuned FFN model achieves **92% reduction in validation MAE** (3.29 → 0.27) through transfer learning on L-BFGS calibrations.
 
-## 📁 Repository Structure
+##  Repository Structure
 
 ```
 double-heston-calibrator/
@@ -46,7 +46,7 @@ double-heston-calibrator/
 └── README.md                     # This file
 ```
 
-## 🚀 Quick Start
+##  Quick Start
 
 ### 1. L-BFGS Calibration (Baseline)
 
@@ -121,7 +121,7 @@ finetune_model(
 )
 ```
 
-## 📊 Model Performance
+##  Model Performance
 
 ### Fine-Tuning Results (500 L-BFGS Calibrations)
 
@@ -142,7 +142,7 @@ finetune_model(
 
 ![Fine-tuning Results](results/finetuning_results.png)
 
-## 🧪 Model Architecture
+##  Model Architecture
 
 ```
 Input (11 features)
@@ -201,7 +201,7 @@ pip install numpy scipy tensorflow scikit-learn matplotlib
 python -c "from src.lbfgs_calibrator import DoubleHestonJumpCalibrator; print('✅ Setup complete')"
 ```
 
-## 📚 Training Pipeline
+##  Training Pipeline
 
 ### Stage 1: Pre-training (Google Colab)
 1. Upload `data/synthetic_10k.pkl` to Colab
@@ -220,7 +220,7 @@ python src/finetune_ffn_on_lbfgs.py
 
 **Output**: `models/ffn_finetuned_on_lbfgs.keras` (production model)
 
-## 🧪 Testing
+##  Testing
 
 ```bash
 # Test L-BFGS calibrator
@@ -232,7 +232,7 @@ python tests/test_lbfgs_quick.py
 # ✅ Runtime: ~106s
 ```
 
-## 📖 Key Implementation Details
+##  Key Implementation Details
 
 ### L-BFGS Optimization
 - **Algorithm**: scipy.optimize.minimize (L-BFGS-B)
@@ -246,14 +246,14 @@ python tests/test_lbfgs_quick.py
 - **Learning Rate**: 1e-5 (very low to prevent catastrophic forgetting)
 - **Regularization**: BatchNorm + Dropout (prevents overfitting on small dataset)
 
-## 🎯 Use Cases
+##  Use Cases
 
 1. **Real-time Pricing**: Use FFN for millisecond predictions in trading systems
 2. **Risk Management**: Fast scenario analysis (1000s of calibrations/second)
 3. **Model Validation**: L-BFGS as ground truth for FFN validation
 4. **Historical Analysis**: Batch calibration on years of market data
 
-## 📊 Citation
+##  Citation
 
 If you use this code in your research, please cite:
 
@@ -266,15 +266,15 @@ If you use this code in your research, please cite:
 }
 ```
 
-## 📄 License
+##  License
 
 MIT License - see LICENSE file for details
 
-## 🤝 Contributing
+##  Contributing
 
 Contributions welcome! Please open an issue or submit a pull request.
 
-## 📧 Contact
+##  Contact
 
 For questions or support, please open an issue on GitHub.
 
