@@ -1,0 +1,23 @@
+# Experiment Configuration
+
+data:
+  n_samples: 500
+  strikes: [90.0, 95.0, 100.0, 105.0, 110.0]
+  maturities: [0.25, 0.5, 1.0]
+  spot: 100.0
+  risk_free: 0.03
+
+training:
+  epochs: 100
+  batch_size: 32
+  learning_rate: 0.001
+  validation_split: 0.2
+
+calibration:
+  lbfgs_maxiter: 200
+  lbfgs_multi_start: 2
+  hybrid_refine: true
+
+evaluation:
+  test_samples: 50
+  metrics: ['mape', 'rmse', 'runtime']
