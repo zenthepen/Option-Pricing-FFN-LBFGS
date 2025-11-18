@@ -266,6 +266,19 @@ If you use this code in your research, please cite:
 }
 ```
 
+## Key References
+
+This work extends:
+
+- **Heston (1993)**: Original stochastic volatility model
+- **Christoffersen et al. (2009)**: Multi-factor stochastic volatility  
+- **Fang & Oosterlee (2008)**: COS Fourier pricing method
+- **Hernandez (2016)**: Neural network calibration
+- **Zadgar et al. (2025)**: Deep learning for Heston calibration
+
+See [REFERENCES.md](docs/REFERENCES.md) for complete bibliography.
+
+
 ##  License
 
 MIT License - see LICENSE file for details
