@@ -27,7 +27,7 @@ double-heston-calibrator/
 │   └── scalers.pkl               # Feature/target StandardScalers
 │
 ├── models/                       # Trained models
-│   ├── ffn_finetuned_on_lbfgs.keras  # FINAL PRODUCTION MODEL ✨
+│   ├── ffn_finetuned_on_lbfgs.keras  # FINAL PRODUCTION MODEL 
 │   ├── best_ffn_model.keras      # Pre-trained model (from Colab)
 │   └── ffn_finetuned_checkpoint.keras  # Best checkpoint during fine-tuning
 │
@@ -198,7 +198,7 @@ cd double-heston-calibrator
 pip install numpy scipy tensorflow scikit-learn matplotlib
 
 # Verify installation
-python -c "from src.lbfgs_calibrator import DoubleHestonJumpCalibrator; print('✅ Setup complete')"
+python -c "from src.lbfgs_calibrator import DoubleHestonJumpCalibrator; print(' Setup complete')"
 ```
 
 ##  Training Pipeline
@@ -227,9 +227,9 @@ python src/finetune_ffn_on_lbfgs.py
 python tests/test_lbfgs_quick.py
 
 # Expected output:
-# ✅ Calibration successful
-# ✅ Pricing error: 0.34%
-# ✅ Runtime: ~106s
+#  Calibration successful
+#  Pricing error: 0.34%
+#  Runtime: ~106s
 ```
 
 ##  Key Implementation Details
@@ -293,6 +293,6 @@ For questions or support, please open an issue on GitHub.
 
 ---
 
-**Status**: Production-ready ✅  
+**Status**: Production-ready 
 **Last Updated**: 2024  
 **Model Version**: v1.0 (fine-tuned on 500 L-BFGS calibrations)
