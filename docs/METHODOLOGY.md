@@ -218,32 +218,21 @@ These 10 features capture the essential **volatility smile shape and term struct
 
 From Bloch (2019) and Hernandez (2016) [12][14]:
 
-<pre>```mermaid graph TD
-    A["<b>Input Layer</b><br/>10 Features<br/>━━━━━━━━━<br/>ATM Vol × 3<br/>Skew × 3<br/>Curvature × 3<br/>Term Slope<br/>Total Premium"]
-    
-    B["<b>Dense Layer 1</b><br/>Units: 512<br/>Activation: ReLU<br/>BatchNormalization"]
-    
-    C["<b>Dense Layer 2</b><br/>Units: 256<br/>Activation: ReLU<br/>BatchNormalization<br/>Dropout: 0.2"]
-    
-    D["<b>Dense Layer 3</b><br/>Units: 128<br/>Activation: ReLU<br/>BatchNormalization"]
-    
-    E["<b>Dense Layer 4</b><br/>Units: 64<br/>Activation: ReLU"]
-    
-    F["<b>Output Layer</b><br/>Units: 13<br/>Activation: Linear<br/>━━━━━━━━━<br/>v₁₀, κ₁, θ₁, σ₁, ρ₁<br/>v₂₀, κ₂, θ₂, σ₂, ρ₂<br/>λ, μⱼ, σⱼ"]
-    
-    A -->|Feed Forward| B
-    B -->|Feed Forward| C
-    C -->|Feed Forward| D
-    D -->|Feed Forward| E
-    E -->|Feed Forward| F
-    
-    style A fill:#e1f5ff,stroke:#01579b,stroke-width:2px,color:#000
-    style B fill:#fff3e0,stroke:#e65100,stroke-width:2px,color:#000
-    style C fill:#fff3e0,stroke:#e65100,stroke-width:2px,color:#000
-    style D fill:#fff3e0,stroke:#e65100,stroke-width:2px,color:#000
-    style E fill:#fff3e0,stroke:#e65100,stroke-width:2px,color:#000
-    style F fill:#c8e6c9,stroke:#1b5e20,stroke-width:2px,color:#000 ```</pre>
+flowchart TD
 
+    A[INPUT LAYER (10 Features)\n- ATM Vol (3 maturities)\n- Skew (3 maturities)\n- Curvature (3 maturities)\n- Term structure slope\n- Total premium]
+
+    B[DENSE LAYER 1 (512 units)\nReLU + BatchNormalization]
+
+    C[DENSE LAYER 2 (256 units)\nReLU + BatchNorm + Dropout 0.2]
+
+    D[DENSE LAYER 3 (128 units)\nReLU + BatchNormalization]
+
+    E[DENSE LAYER 4 (64 units)\nReLU]
+
+    F[OUTPUT LAYER (13 parameters)\nv₁₀, κ₁, θ₁, σ₁, ρ₁\nv₂₀, κ₂, θ₂, σ₂, ρ₂\nλ, μⱼ, σⱼ]
+
+    A --> B --> C --> D --> E --> F
 
 
 ### 6.4 Two-Stage Training Strategy
