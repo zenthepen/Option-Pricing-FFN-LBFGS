@@ -218,17 +218,25 @@ These 10 features capture the essential **volatility smile shape and term struct
 
 From Bloch (2019) and Hernandez (2016) [12][14]:
 
-Input (10 features)
-↓
-Dense(512) + BatchNorm + ReLU
-↓
-Dense(256) + BatchNorm + Dropout(0.2) + ReLU
-↓
-Dense(128) + BatchNorm + ReLU
-↓
-Dense(64) + ReLU
-↓
-Output(13 parameters)
+B["<b>Hidden Layer 1</b><br/>Dense 512<br/>ReLU<br/>BatchNorm"]
+
+C["<b>Hidden Layer 2</b><br/>Dense 256<br/>ReLU<br/>BatchNorm<br/>Dropout 0.2"]
+
+D["<b>Hidden Layer 3</b><br/>Dense 128<br/>ReLU<br/>BatchNorm"]
+
+E["<b>Hidden Layer 4</b><br/>Dense 64<br/>ReLU"]
+
+F["<b>Output Layer</b><br/>13 Parameters<br/>━━━━━━━━━<br/>-  v₁₀, κ₁, θ₁, σ₁, ρ₁<br/>-  v₂₀, κ₂, θ₂, σ₂, ρ₂<br/>-  λ, μⱼ, σⱼ"]
+
+A --> B --> C --> D --> E --> F
+
+style A fill:#e1f5ff
+style B fill:#fff3e0
+style C fill:#fff3e0
+style D fill:#fff3e0
+style E fill:#fff3e0
+style F fill:#c8e6c9
+
 
 ### 6.4 Two-Stage Training Strategy
 
