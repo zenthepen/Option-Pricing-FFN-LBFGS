@@ -218,24 +218,32 @@ These 10 features capture the essential **volatility smile shape and term struct
 
 From Bloch (2019) and Hernandez (2016) [12][14]:
 
-B["<b>Hidden Layer 1</b><br/>Dense 512<br/>ReLU<br/>BatchNorm"]
+graph TD
+    A["<b>Input Layer</b><br/>10 Features<br/>━━━━━━━━━<br/>ATM Vol × 3<br/>Skew × 3<br/>Curvature × 3<br/>Term Slope<br/>Total Premium"]
+    
+    B["<b>Dense Layer 1</b><br/>Units: 512<br/>Activation: ReLU<br/>BatchNormalization"]
+    
+    C["<b>Dense Layer 2</b><br/>Units: 256<br/>Activation: ReLU<br/>BatchNormalization<br/>Dropout: 0.2"]
+    
+    D["<b>Dense Layer 3</b><br/>Units: 128<br/>Activation: ReLU<br/>BatchNormalization"]
+    
+    E["<b>Dense Layer 4</b><br/>Units: 64<br/>Activation: ReLU"]
+    
+    F["<b>Output Layer</b><br/>Units: 13<br/>Activation: Linear<br/>━━━━━━━━━<br/>v₁₀, κ₁, θ₁, σ₁, ρ₁<br/>v₂₀, κ₂, θ₂, σ₂, ρ₂<br/>λ, μⱼ, σⱼ"]
+    
+    A -->|Feed Forward| B
+    B -->|Feed Forward| C
+    C -->|Feed Forward| D
+    D -->|Feed Forward| E
+    E -->|Feed Forward| F
+    
+    style A fill:#e1f5ff,stroke:#01579b,stroke-width:2px,color:#000
+    style B fill:#fff3e0,stroke:#e65100,stroke-width:2px,color:#000
+    style C fill:#fff3e0,stroke:#e65100,stroke-width:2px,color:#000
+    style D fill:#fff3e0,stroke:#e65100,stroke-width:2px,color:#000
+    style E fill:#fff3e0,stroke:#e65100,stroke-width:2px,color:#000
+    style F fill:#c8e6c9,stroke:#1b5e20,stroke-width:2px,color:#000
 
-C["<b>Hidden Layer 2</b><br/>Dense 256<br/>ReLU<br/>BatchNorm<br/>Dropout 0.2"]
-
-D["<b>Hidden Layer 3</b><br/>Dense 128<br/>ReLU<br/>BatchNorm"]
-
-E["<b>Hidden Layer 4</b><br/>Dense 64<br/>ReLU"]
-
-F["<b>Output Layer</b><br/>13 Parameters<br/>━━━━━━━━━<br/>-  v₁₀, κ₁, θ₁, σ₁, ρ₁<br/>-  v₂₀, κ₂, θ₂, σ₂, ρ₂<br/>-  λ, μⱼ, σⱼ"]
-
-A --> B --> C --> D --> E --> F
-
-style A fill:#e1f5ff
-style B fill:#fff3e0
-style C fill:#fff3e0
-style D fill:#fff3e0
-style E fill:#fff3e0
-style F fill:#c8e6c9
 
 
 ### 6.4 Two-Stage Training Strategy
