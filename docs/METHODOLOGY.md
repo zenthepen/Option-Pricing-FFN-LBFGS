@@ -218,23 +218,17 @@ These 10 features capture the essential **volatility smile shape and term struct
 
 From Bloch (2019) and Hernandez (2016) [12][14]:
 
-flowchart TD
-
-    A[INPUT LAYER (10 Features)\n- ATM Vol (3 maturities)\n- Skew (3 maturities)\n- Curvature (3 maturities)\n- Term structure slope\n- Total premium]
-
-    B[DENSE LAYER 1 (512 units)\nReLU + BatchNormalization]
-
-    C[DENSE LAYER 2 (256 units)\nReLU + BatchNorm + Dropout 0.2]
-
-    D[DENSE LAYER 3 (128 units)\nReLU + BatchNormalization]
-
-    E[DENSE LAYER 4 (64 units)\nReLU]
-
-    F[OUTPUT LAYER (13 parameters)\nv₁₀, κ₁, θ₁, σ₁, ρ₁\nv₂₀, κ₂, θ₂, σ₂, ρ₂\nλ, μⱼ, σⱼ]
-
+```mermaid
+graph TD
+    A["Input Layer<br/>11 Features<br/>ATM Vol (3), Skew (3), Butterfly (3)<br/>Term slope, Total ATM"]
+    B["Dense Layer 1<br/>512 units<br/>BatchNorm + Dropout(0.3) + ReLU"]
+    C["Dense Layer 2<br/>256 units<br/>BatchNorm + Dropout(0.3) + ReLU"]
+    D["Dense Layer 3<br/>128 units<br/>BatchNorm + Dropout(0.2) + ReLU"]
+    E["Dense Layer 4<br/>64 units<br/>BatchNorm + Dropout(0.2) + ReLU"]
+    F["Output Layer<br/>13 Parameters<br/>v₁₀, κ₁, θ₁, σ₁, ρ₁<br/>v₂₀, κ₂, θ₂, σ₂, ρ₂<br/>λⱼ, μⱼ, σⱼ"]
+    
     A --> B --> C --> D --> E --> F
-
-
+```
 ### 6.4 Two-Stage Training Strategy
 
 Following Zadgar et al. (2025) [14]:
