@@ -187,7 +187,7 @@ From 15 option prices (3 strikes × 3 maturities + ATM at 2 additional maturitie
 12. `mu_j` - Mean jump size
 13. `sigma_j` - Jump size volatility
 
-## 🛠️ Installation
+## Installation
 
 ```bash
 # Clone repository
