@@ -127,10 +127,10 @@ finetune_model(
 
 | Metric | Initial (Epoch 1) | Final (Epoch 50) | Improvement |
 |--------|------------------|------------------|-------------|
-| **Validation Loss** | 21.034 | 0.127 | **99.4%** ⬇️ |
-| **Validation MAE** | 3.287 | 0.268 | **91.9%** ⬇️ |
-| **Training Loss** | 0.332 | 0.149 | 55.2% ⬇️ |
-| **Training MAE** | 0.444 | 0.296 | 33.3% ⬇️ |
+| **Validation Loss** | 21.034 | 0.127 | **99.4%**  |
+| **Validation MAE** | 3.287 | 0.268 | **91.9%**  |
+| **Training Loss** | 0.332 | 0.149 | 55.2%  |
+| **Training MAE** | 0.444 | 0.296 | 33.3%  |
 
 ### Pricing Accuracy Comparison
 
