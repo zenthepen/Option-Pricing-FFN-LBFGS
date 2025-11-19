@@ -218,7 +218,7 @@ These 10 features capture the essential **volatility smile shape and term struct
 
 From Bloch (2019) and Hernandez (2016) [12][14]:
 
-graph TD
+<pre>```mermaid graph TD
     A["<b>Input Layer</b><br/>10 Features<br/>━━━━━━━━━<br/>ATM Vol × 3<br/>Skew × 3<br/>Curvature × 3<br/>Term Slope<br/>Total Premium"]
     
     B["<b>Dense Layer 1</b><br/>Units: 512<br/>Activation: ReLU<br/>BatchNormalization"]
@@ -242,7 +242,7 @@ graph TD
     style C fill:#fff3e0,stroke:#e65100,stroke-width:2px,color:#000
     style D fill:#fff3e0,stroke:#e65100,stroke-width:2px,color:#000
     style E fill:#fff3e0,stroke:#e65100,stroke-width:2px,color:#000
-    style F fill:#c8e6c9,stroke:#1b5e20,stroke-width:2px,color:#000
+    style F fill:#c8e6c9,stroke:#1b5e20,stroke-width:2px,color:#000 ```</pre>
 
 
 
