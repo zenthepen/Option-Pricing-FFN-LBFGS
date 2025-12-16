@@ -19,8 +19,8 @@ $$dv_2(t) = \kappa_2(\theta_2 - v_2(t)) dt + \sigma_2 \sqrt{v_2(t)} dW_2(t)$$
 where:
 - v₁(t), v₂(t) represent instantaneous variance factors
 - κᵢ, θᵢ, σᵢ denote mean-reversion speed, long-term variance, and volatility-of-volatility for factor i
-- ρᵢ = Cor(dW_S, dW_i) captures leverage effects
-- dJ(t) follows a compound Poisson process with intensity λ and normally distributed jump sizes Y ~ N(μⱼ, σⱼ²)
+- $\rho_i = \text{Cor}(dW_S, dW_i)$ captures leverage effects
+- dJ(t) follows a compound Poisson process with intensity λ and normally distributed jump sizes $Y \sim N(\mu_j, \sigma_j^2)$
 
 The parameter space consists of **θ** = {v₁₀, κ₁, θ₁, σ₁, ρ₁, v₂₀, κ₂, θ₂, σ₂, ρ₂, λ, μⱼ, σⱼ}, subject to positivity constraints and Feller conditions [3][5].
 
@@ -48,9 +48,9 @@ To enable supervised learning we construct a synthetic calibration dataset:
 **Parameter Sampling**: We draw parameter vectors from distributions informed by market-calibrated ranges reported in the literature [4][5]. Specifically:
 - Positive parameters (vᵢ₀, κᵢ, θᵢ, σᵢ, λ, σⱼ) sampled from log-normal distributions
 - Correlations (ρᵢ) sampled uniformly from [-0.95, -0.05] to reflect empirical leverage effects
-- Jump mean (μⱼ) sampled from N(-0.04, 0.02²) consistent with observed jump distributions
+- Jump mean (μⱼ) sampled from $N(-0.04, 0.02^2)$ consistent with observed jump distributions
 
-**Option Price Generation**: For each parameter vector, we price a standard grid of 15 European call options (5 strikes × 3 maturities) using the COS method with N=128 terms. Strikes span moneyness ratios [0.9, 0.95, 1.0, 1.05, 1.1] and maturities are [3M, 6M, 1Y]. Small multiplicative noise (ε ~ N(1, 0.001²)) is added to simulate bid-ask spreads.
+**Option Price Generation**: For each parameter vector, we price a standard grid of 15 European call options (5 strikes × 3 maturities) using the COS method with $N=128$ terms. Strikes span moneyness ratios [0.9, 0.95, 1.0, 1.05, 1.1] and maturities are [3M, 6M, 1Y]. Small multiplicative noise ($\varepsilon \sim N(1, 0.001^2)$) is added to simulate bid-ask spreads.
 
 **Dataset Size**: We generate 100,000 synthetic calibration instances, providing substantial data for neural network training while maintaining computational feasibility.
 
@@ -67,12 +67,12 @@ A subset of 500 synthetic scenarios is calibrated using multi-start L-BFGS-B opt
 We construct 10 engineered features that capture essential characteristics of the implied volatility surface [12][14]:
 
 **Maturity-specific features** (3 maturities × 3 features = 9):
-- Normalized ATM price: P_{ATM}(τ) / S₀
-- Skew proxy: [P_{OTM}(τ) - P_{ITM}(τ)] / S₀  
-- Convexity proxy: [P_{ITM}(τ) + P_{OTM}(τ) - 2P_{ATM}(τ)] / S₀
+- Normalized ATM price: $P_{ATM}(\tau) / S_0$
+- Skew proxy: $[P_{OTM}(\tau) - P_{ITM}(\tau)] / S_0$  
+- Convexity proxy: $[P_{ITM}(\tau) + P_{OTM}(\tau) - 2P_{ATM}(\tau)] / S_0$
 
 **Cross-maturity features** (1):
-- Term structure slope: [P_{ATM}(1Y) - P_{ATM}(3M)] / S₀
+- Term structure slope: $[P_{ATM}(1Y) - P_{ATM}(3M)] / S_0$
 
 ### 3.2 Network Design
 
@@ -102,7 +102,7 @@ This achieves approximately 31% mean pricing error
 
 **Stage-2**: Fine-tuning on L-BFGS Calibrations
 The pre-trained network is fine-tuned on 500 L-BFGS-derived calibrations using:
-- Optimizer: Adam with learning rate 1×10⁻⁵ (reduced by 100×)
+- Optimizer: Adam with learning rate $1 \times 10^{-5}$ (reduced by 100×)
 - Batch size: 32
 - Epochs: 50 with early stopping (patience 10)
 - Train/validation split: 85%/15%
@@ -117,7 +117,7 @@ The hybrid calibration combines neural prediction and local optimization:
 
 **Output:** Calibrated parameters $\boldsymbol{\theta}^*$
 
-1. **Feature Extraction:** Extract features $\mathbf{x}$ from $\mathbf{P}_{\text{market}}$ using transformations in §4.1
+1. **Feature Extraction:** Extract features $\mathbf{x}$ from $\mathbf{P}_{\text{market}}$ using transformations in §3.1
 
 2. **Neural Prediction:** Compute initial parameter estimates via the pre-trained FFN:
    $$\boldsymbol{\theta}_{\text{FFN}} = \text{FFN}(\mathbf{x})$$
@@ -135,7 +135,7 @@ where $w_i = 1$ for all $i$ (uniform weighting) to ensure robust performance acr
 
 ### 4.2 Theoretical Justification
 
-The hybrid approach exploits a warm start property of local optimization. When initialized near the basin of attraction of the local minima the L-BFGS converges in O(log ε) iterations for strongly convex objectives. Though function to minimize is non-convex, the FFN initialization consistently places the optimizer within the convergence region of an appropriate minima, drastically reducing the number iterations from 200-300 to 10-15.
+The hybrid approach exploits a warm start property of local optimization. When initialized near the basin of attraction of the local minima the L-BFGS converges in $O(\log \varepsilon)$ iterations for strongly convex objectives. Though function to minimize is non-convex, the FFN initialization consistently places the optimizer within the convergence region of an appropriate minima, drastically reducing the number iterations from 200-300 to 10-15.
 
 ---
 
@@ -149,11 +149,11 @@ The hybrid approach exploits a warm start property of local optimization. When i
 
 To ensure implementation integrity, we validate:
 
-1. **Put-Call Parity**: Verify C - P = S₀e⁻ᵟᵀ - Ke⁻ʳᵀ holds to machine precision
+1. **Put-Call Parity**: Verify $C - P = S_0 e^{-\delta T} - K e^{-rT}$ holds to machine precision
 2. **Monotonicity**: Confirm call prices decrease monotonically with strike
-3. **Boundary Conditions**: Check C(K→0) → S₀, C(K→∞) → 0
-4. **Jump Limit**: Verify model reduces to pure Double Heston when λ→0
-5. **Feller Conditions**: Confirm 2κᵢθᵢ ≥ σᵢ² for variance positivity [3]
+3. **Boundary Conditions**: Check $C(K \to 0) \to S_0$, $C(K \to \infty) \to 0$
+4. **Jump Limit**: Verify model reduces to pure Double Heston when $\lambda \to 0$
+5. **Feller Conditions**: Confirm $2\kappa_i\theta_i \geq \sigma_i^2$ for variance positivity [3]
 
 ---
 

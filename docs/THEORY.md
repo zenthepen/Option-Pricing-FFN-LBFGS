@@ -61,7 +61,7 @@ $$dv_1(t) = \kappa_1 (\theta_1 - v_1(t)) dt + \sigma_1 \sqrt{v_1(t)} dW_1(t)$$
 $$dv_2(t) = \kappa_2 (\theta_2 - v_2(t)) dt + \sigma_2 \sqrt{v_2(t)} dW_2(t)$$
 
 where:
-- **Factor 1**: Fast mean-reverting (typically κ₁ >> κ₂)
+- **Factor 1**: Fast mean-reverting (typically $\kappa_1 \gg \kappa_2$)
 - **Factor 2**: Slow mean-reverting (controls long-term volatility levels)
 
 **Parameters**: {v₁₀, κ₁, θ₁, σ₁, ρ₁, v₂₀, κ₂, θ₂, σ₂, ρ₂} (10 parameters)
@@ -146,10 +146,10 @@ where:
 
 **Advantages** [8][9]:
 
-Exponential convergence rate (O(e^{-αN}))
-Handles European and American options
-Natural truncation of integration domain
-Much faster than FFT [8][9]
+- Exponential convergence rate ($O(e^{-\alpha N})$)
+- Handles European and American options
+- Natural truncation of integration domain
+- Much faster than FFT [8][9]
 
 We use N = 128 for our project 
 
@@ -178,8 +178,8 @@ This approach uses **L-BFGS-B** (quasi-Newton method with bounds) [11]:
 $$\theta_{t+1} = \theta_t - \alpha_t H_t^{-1} \nabla L(\theta_t)$$
 
 where:
-- **H_t**: Limited-memory Hessian approximation
-- **α_t**: Step size from line search
+- **$H_t$**: Limited-memory Hessian approximation
+- **$\alpha_t$**: Step size from line search
 
 **Performance**: Achieves <1% pricing error but requires **100-300 function evaluations**, taking **2-5 minutes** [11].
 
@@ -304,16 +304,16 @@ Truncation range [a,b] selected using generalized method of moments [8].
 ### 8.2 Parameter Bounds and Constraints
 
 **Box constraints**:
-- v₁₀, v₂₀, κ₁, κ₂, θ₁, θ₂ ∈ (0, ∞)
-- σ₁, σ₂ ∈ (0, ∞)
-- ρ₁, ρ₂ ∈ [-0.99, 0.99]
-- λ ∈ (0, ∞)
-- μⱼ ∈ (-∞, ∞)
-- σⱼ ∈ (0, ∞)
+- $v_{10}, v_{20}, \kappa_1, \kappa_2, \theta_1, \theta_2 \in (0, \infty)$
+- $\sigma_1, \sigma_2 \in (0, \infty)$
+- $\rho_1, \rho_2 \in [-0.99, 0.99]$
+- $\lambda \in (0, \infty)$
+- $\mu_j \in (-\infty, \infty)$
+- $\sigma_j \in (0, \infty)$
 
 **Feller conditions** [3][5]:
-- 2κ₁θ₁ ≥ σ₁² (strict positivity of variance)
-- 2κ₂θ₂ ≥ σ₂²
+- $2\kappa_1\theta_1 \geq \sigma_1^2$ (strict positivity of variance)
+- $2\kappa_2\theta_2 \geq \sigma_2^2$
 
 ---
 
