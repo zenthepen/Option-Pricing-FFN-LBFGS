@@ -39,7 +39,7 @@ where:
 - **σ_v**: volatility of volatility
 - **ρ**: correlation between asset and variance shocks
 
-**Parameters to calibrate**: {v₀, κ, θ, σ_v, ρ} (5 parameters)
+**Parameters to calibrate**: $\{v_0, \kappa, \theta, \sigma_v, \rho\}$ (5 parameters)
 
 **Advantages**:
 ✓ Closed-form characteristic function [3]
@@ -64,7 +64,7 @@ where:
 - **Factor 1**: Fast mean-reverting (typically $\kappa_1 \gg \kappa_2$)
 - **Factor 2**: Slow mean-reverting (controls long-term volatility levels)
 
-**Parameters**: {v₁₀, κ₁, θ₁, σ₁, ρ₁, v₂₀, κ₂, θ₂, σ₂, ρ₂} (10 parameters)
+**Parameters**: $\{v_{10}, \kappa_1, \theta_1, \sigma_1, \rho_1, v_{20}, \kappa_2, \theta_2, \sigma_2, \rho_2\}$ (10 parameters)
 
 **Benefits**:
 ✓ Better captures volatility surface dynamics [4]
@@ -123,7 +123,7 @@ For the Heston and Double Heston models, closed-form solutions don't exist, but 
 
 $$\Phi(u; S, v_1, v_2, \tau) = E[e^{iu \ln S(\tau)}] = e^{A(\tau,u) + B_1(\tau,u)v_1 + B_2(\tau,u)v_2 + iu\ln S}$$
 
-where A, B₁, B₂ satisfy a system of ODEs [3][4].
+where $A$, $B_1$, $B_2$ satisfy a system of ODEs [3][4].
 
 Option prices can be recovered via Fourier inversion:
 
@@ -139,10 +139,10 @@ $$C(S, K, T) \approx e^{-rT} \sum_{k=0}^{N-1} \text{Re}\left[\Phi\left(\frac{k\p
 
 where:
 
-- **[a,b]**: Truncation Range
-- **Φ(u)**: characteristic function
-- **Vₖ**: cosine coefficients of the payoff
-- **N**: number of terms
+- **$[a,b]$**: Truncation Range
+- **$\Phi(u)$**: characteristic function
+- **$V_k$**: cosine coefficients of the payoff
+- **$N$**: number of terms
 
 **Advantages** [8][9]:
 
@@ -151,7 +151,7 @@ where:
 - Natural truncation of integration domain
 - Much faster than FFT [8][9]
 
-We use N = 128 for our project 
+We use $N = 128$ for our project 
 
 ---
 
@@ -159,7 +159,7 @@ We use N = 128 for our project
 
 ### 5.1 Problem Formulation
 
-Given the market option prices $\{P_i^{market}\}_{i=1}^M$ across M options, we need to find paramters **θ** which minimizes pricing error:
+Given the market option prices $\{P_i^{market}\}_{i=1}^M$ across $M$ options, we need to find parameters **θ** which minimizes pricing error:
 
 $$\min_{\theta} L(\theta) = \sum_{i=1}^M w_i \left[\frac{P_i^{market} - P_i^{model}(\theta)}{P_i^{market}}\right]^2$$
 
@@ -169,7 +169,7 @@ $$\theta \in \Theta = \{\text{parameter space satisfying Feller + bounds}\}$$
 
 where:
 
-**θ** = 13 paramters
+**θ** = 13 parameters
 
 ### 5.2 Traditional Optimization: L-BFGS
 
@@ -296,10 +296,10 @@ The characteristic function for our model [8][9]:
 $$\Phi(u) = \exp\left(A(u) + B_1(u)v_1 + B_2(u)v_2 + C(u) + iu\ln S\right)$$
 
 where:
-- A(u), B₁(u), B₂(u): Solve ODEs from Heston dynamics [3]
-- C(u): Adjustment for jump component [6]
+- $A(u)$, $B_1(u)$, $B_2(u)$: Solve ODEs from Heston dynamics [3]
+- $C(u)$: Adjustment for jump component [6]
 
-Truncation range [a,b] selected using generalized method of moments [8].
+Truncation range $[a,b]$ selected using generalized method of moments [8].
 
 ### 8.2 Parameter Bounds and Constraints
 

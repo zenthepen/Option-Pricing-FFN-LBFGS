@@ -22,7 +22,7 @@ where:
 - $\rho_i = \text{Cor}(dW_S, dW_i)$ captures leverage effects
 - dJ(t) follows a compound Poisson process with intensity λ and normally distributed jump sizes $Y \sim N(\mu_j, \sigma_j^2)$
 
-The parameter space consists of **θ** = {v₁₀, κ₁, θ₁, σ₁, ρ₁, v₂₀, κ₂, θ₂, σ₂, ρ₂, λ, μⱼ, σⱼ}, subject to positivity constraints and Feller conditions [3][5].
+The parameter space consists of **θ** = $\{v_{10}, \kappa_1, \theta_1, \sigma_1, \rho_1, v_{20}, \kappa_2, \theta_2, \sigma_2, \rho_2, \lambda, \mu_j, \sigma_j\}$, subject to positivity constraints and Feller conditions [3][5].
 
 ### 1.2 Option Pricing via COS Method
 
@@ -31,9 +31,9 @@ European options are calculated using the Fourier-cosine (COS) method [8].
 $$C(K, T) \approx e^{-rT} \sum_{k=0}^{N-1} \text{Re}\left[\Phi\left(\frac{k\pi}{b-a}\right) e^{-ik\pi\frac{a}{b-a}}\right] V_k$$
 
 where: 
-- **Φ(u)** is characteristic function of log-returns
-- **[a,b]** is the truncation range determined from cumulants
-- **Vₖ** are cosine coefficients of the payoff function
+- **$\Phi(u)$** is characteristic function of log-returns
+- **$[a,b]$** is the truncation range determined from cumulants
+- **$V_k$** are cosine coefficients of the payoff function
 
 The COS method exhibits significant computational advantages over PDE approaches and Monte Carlo [8][9]
 
