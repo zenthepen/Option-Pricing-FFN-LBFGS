@@ -1,16 +1,4 @@
-"""
-Generate synthetic "historical" calibrations for testing FFN fine-tuning workflow.
 
-This creates 500 CalibrationResult objects as if L-BFGS was run on 500 historical dates.
-Use this when you don't have access to real historical option data but want to test
-the FFN fine-tuning pipeline.
-
-Usage:
-    python3 generate_synthetic_calibrations.py
-    
-Output:
-    lbfgs_calibrations_synthetic.pkl - 500 synthetic calibration results
-"""
 
 import numpy as np
 import pickle
@@ -21,20 +9,7 @@ from doubleheston import DoubleHeston
 
 def generate_synthetic_calibrations(n_samples: int = 500, 
                                     save_path: str = 'lbfgs_calibrations_synthetic.pkl'):
-    """
-    Generate synthetic calibration results that mimic real L-BFGS output.
-    
-    Parameters:
-    -----------
-    n_samples : int
-        Number of synthetic calibrations to generate
-    save_path : str
-        Path to save results
-        
-    Returns:
-    --------
-    list : List of CalibrationResult objects
-    """
+ 
     print("="*70)
     print("GENERATING SYNTHETIC HISTORICAL CALIBRATIONS")
     print("="*70)
@@ -44,13 +19,12 @@ def generate_synthetic_calibrations(n_samples: int = 500,
     print(f"  Save path: {save_path}")
     print()
     
-    # Generate dates
+  
     start_date = datetime(2022, 1, 3)
     dates = []
     current = start_date
     
     for i in range(n_samples):
-        # Skip weekends
         while current.weekday() >= 5:
             current += timedelta(days=1)
         dates.append(current.strftime('%Y-%m-%d'))
@@ -60,8 +34,7 @@ def generate_synthetic_calibrations(n_samples: int = 500,
     print(f"\nGenerating calibration results...")
     
     calibrations = []
-    
-    # Define reasonable parameter ranges (market realistic)
+
     param_ranges = {
         'v1_0': (0.025, 0.080),
         'kappa1': (1.5, 4.5),
@@ -78,7 +51,6 @@ def generate_synthetic_calibrations(n_samples: int = 500,
         'sigma_j': (0.03, 0.12)
     }
     
-    # Market configuration
     strikes = np.array([90, 95, 100, 105, 110])
     maturities = np.array([0.25, 0.5, 1.0])
     spot_base = 100.0
@@ -87,37 +59,32 @@ def generate_synthetic_calibrations(n_samples: int = 500,
     param_names = list(param_ranges.keys())
     
     for i, date in enumerate(dates):
-        # Generate random parameters within realistic ranges
         params = {}
         for name, (min_val, max_val) in param_ranges.items():
             params[name] = np.random.uniform(min_val, max_val)
         
-        # Add time-series structure (parameters drift slowly)
         if i > 0:
             prev_params = calibrations[-1].parameters
-            # Parameters change slowly (90% correlation with previous day)
+    
             for name in param_names:
-                alpha = 0.9  # Persistence
+                alpha = 0.9 
                 params[name] = alpha * prev_params[name] + (1 - alpha) * params[name]
         
-        # Spot price with volatility
+  
         if i == 0:
             spot = spot_base
         else:
-            # Random walk with drift
-            spot_return = np.random.normal(0.0003, 0.01)  # ~30% annualized vol
+            spot_return = np.random.normal(0.0003, 0.01) 
             spot = calibrations[-1].spot * (1 + spot_return)
         
-        # Generate "market" options
         market_options = []
         market_prices = []
         model_prices = []
         
         for T in maturities:
             for K_relative in strikes:
-                K = K_relative * spot / 100.0  # Scale strikes with spot
+                K = K_relative * spot / 100.0 
                 
-                # Price with Double Heston
                 dh = DoubleHeston(
                     S0=spot,
                     K=K,
@@ -141,8 +108,7 @@ def generate_synthetic_calibrations(n_samples: int = 500,
                 
                 price = dh.pricing()
                 
-                # Add small market noise (realistic bid-ask spread + estimation error)
-                market_noise = np.random.normal(0, 0.02) * price  # 2% std
+                market_noise = np.random.normal(0, 0.02) * price 
                 market_price = price + market_noise
                 
                 market_options.append({
@@ -155,13 +121,11 @@ def generate_synthetic_calibrations(n_samples: int = 500,
                 market_prices.append(market_price)
                 model_prices.append(price)
         
-        # Compute loss (MSPE)
         market_prices = np.array(market_prices)
         model_prices = np.array(model_prices)
         relative_errors = (model_prices - market_prices) / market_prices
         loss = np.mean(relative_errors**2)
         
-        # Create CalibrationResult
         result = CalibrationResult(
             date=date,
             spot=spot,
@@ -171,24 +135,21 @@ def generate_synthetic_calibrations(n_samples: int = 500,
             model_prices=model_prices,
             market_options=market_options,
             final_loss=loss,
-            calibration_time=np.random.uniform(120, 250),  # Realistic timing
+            calibration_time=np.random.uniform(120, 250), 
             success=True,
             iterations=np.random.randint(80, 200),
             message='Converged'
         )
         
         calibrations.append(result)
-        
-        # Progress
+
         if (i + 1) % 50 == 0:
             print(f"  Progress: {i+1}/{n_samples} ({(i+1)/n_samples*100:.1f}%)")
     
-    # Save results
     print(f"\nSaving to {save_path}...")
     with open(save_path, 'wb') as f:
         pickle.dump(calibrations, f)
     
-    # Print statistics
     print(f"\n{'='*70}")
     print("GENERATION COMPLETE")
     print("="*70)
@@ -221,8 +182,7 @@ def generate_synthetic_calibrations(n_samples: int = 500,
         values = [r.parameters[param] for r in calibrations]
         print(f"  {param:10s}: mean={np.mean(values):.4f}, std={np.std(values):.4f}, "
               f"min={np.min(values):.4f}, max={np.max(values):.4f}")
-    
-    # Pricing error statistics
+        
     all_errors = []
     for r in calibrations:
         rel_errors = np.abs((r.model_prices - r.market_prices) / r.market_prices) * 100
@@ -244,9 +204,7 @@ def generate_synthetic_calibrations(n_samples: int = 500,
 
 
 def compare_with_real_statistics():
-    """
-    Print expected vs synthetic statistics for validation.
-    """
+   
     print("\n" + "="*70)
     print("COMPARISON: SYNTHETIC vs REAL MARKET CALIBRATIONS")
     print("="*70)
@@ -293,7 +251,6 @@ Use Case:
 if __name__ == "__main__":
     import sys
     
-    # Parse arguments
     n_samples = 500
     if len(sys.argv) > 1:
         try:
@@ -303,16 +260,13 @@ if __name__ == "__main__":
             print("Usage: python3 generate_synthetic_calibrations.py [n_samples]")
             sys.exit(1)
     
-    # Generate synthetic calibrations
     calibrations = generate_synthetic_calibrations(
         n_samples=n_samples,
         save_path='lbfgs_calibrations_synthetic.pkl'
     )
     
-    # Show comparison
     compare_with_real_statistics()
     
-    # Usage example
     print("\n" + "="*70)
     print("USAGE EXAMPLE: FFN FINE-TUNING")
     print("="*70)
