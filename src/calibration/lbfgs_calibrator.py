@@ -1,12 +1,4 @@
-"""
-L-BFGS Calibrator for Double Heston + Jump Diffusion Model
 
-This module provides production-ready calibration for the 13-parameter
-Double Heston + Jump model using historical market option prices.
-
-Author: Zen
-Date: November 2025
-"""
 
 import numpy as np
 import pandas as pd
@@ -19,13 +11,13 @@ from scipy.optimize import minimize
 import warnings
 warnings.filterwarnings('ignore')
 
-# Import the pricing model
+
 from doubleheston import DoubleHeston
 
 
 @dataclass
 class CalibrationResult:
-    """Stores results from a single calibration run."""
+    
     date: str
     spot: float
     risk_free: float
@@ -41,30 +33,7 @@ class CalibrationResult:
 
 
 class DoubleHestonJumpCalibrator:
-    """
-    L-BFGS-B calibrator for Double Heston + Jump Diffusion model.
-    
-    Calibrates 13 parameters to minimize weighted RMSE between market
-    and model option prices.
-    
-    Parameters:
-    -----------
-    spot : float
-        Current spot price
-    risk_free_rate : float
-        Risk-free interest rate (annualized)
-    market_options : list of dict
-        Each dict contains: strike, maturity, price, option_type
-    
-    Example:
-    --------
-    >>> options = [
-    ...     {'strike': 100, 'maturity': 0.25, 'price': 5.2, 'option_type': 'call'},
-    ...     {'strike': 105, 'maturity': 0.25, 'price': 2.8, 'option_type': 'call'},
-    ... ]
-    >>> calibrator = DoubleHestonJumpCalibrator(100.0, 0.03, options)
-    >>> result = calibrator.calibrate(maxiter=300, multi_start=3)
-    """
+
     
     def __init__(self, spot: float, risk_free_rate: float, market_options: List[Dict]):
         self.spot = spot
@@ -72,70 +41,39 @@ class DoubleHestonJumpCalibrator:
         self.market_options = market_options
         self.market_prices = np.array([opt['price'] for opt in market_options])
         
-        # Parameter names (in order)
         self.param_names = [
             'v1_0', 'kappa1', 'theta1', 'sigma1', 'rho1',
             'v2_0', 'kappa2', 'theta2', 'sigma2', 'rho2',
             'lambda_j', 'mu_j', 'sigma_j'
         ]
         
-        # Optimization statistics
         self.n_calls = 0
         self.best_loss = np.inf
         
     def transform_params(self, x: np.ndarray) -> Dict[str, float]:
-        """
-        Transform unconstrained optimization variables to constrained parameters.
-        
-        Uses exponential transformation for positive parameters and tanh for correlations.
-        
-        Parameters:
-        -----------
-        x : np.ndarray
-            13 unconstrained optimization variables
-            
-        Returns:
-        --------
-        dict : Parameter dictionary with all 13 parameters
-        """
         params = {}
         
-        # Variance parameters (positive): use exp
         params['v1_0'] = np.exp(x[0])
         params['kappa1'] = np.exp(x[1])
         params['theta1'] = np.exp(x[2])
         params['sigma1'] = np.exp(x[3])
         
-        # Correlation (bounded to [-1, 1]): use tanh
         params['rho1'] = np.tanh(x[4])
         
-        # Second Heston component
         params['v2_0'] = np.exp(x[5])
         params['kappa2'] = np.exp(x[6])
         params['theta2'] = np.exp(x[7])
         params['sigma2'] = np.exp(x[8])
         params['rho2'] = np.tanh(x[9])
         
-        # Jump parameters
-        params['lambda_j'] = np.exp(x[10])  # Jump intensity (positive)
-        params['mu_j'] = x[11]  # Jump mean (can be negative)
-        params['sigma_j'] = np.exp(x[12])  # Jump volatility (positive)
+        params['lambda_j'] = np.exp(x[10])  
+        params['mu_j'] = x[11] 
+        params['sigma_j'] = np.exp(x[12]) 
         
         return params
     
     def inverse_transform_params(self, params: Dict[str, float]) -> np.ndarray:
-        """
-        Convert constrained parameters back to unconstrained optimization variables.
-        
-        Parameters:
-        -----------
-        params : dict
-            Dictionary with all 13 parameters
-            
-        Returns:
-        --------
-        np.ndarray : 13 unconstrained variables
-        """
+    
         x = np.zeros(13)
         
         x[0] = np.log(params['v1_0'])
@@ -157,43 +95,19 @@ class DoubleHestonJumpCalibrator:
         return x
     
     def compute_feller_penalty(self, params: Dict[str, float]) -> float:
-        """
-        Compute penalty for violating Feller condition: 2*kappa*theta >= sigma^2.
-        
-        Parameters:
-        -----------
-        params : dict
-            Parameter dictionary
-            
-        Returns:
-        --------
-        float : Penalty value (0 if satisfied, positive if violated)
-        """
         penalty1 = max(0, params['sigma1']**2 - 2*params['kappa1']*params['theta1'])
         penalty2 = max(0, params['sigma2']**2 - 2*params['kappa2']*params['theta2'])
         
         return 1000.0 * (penalty1 + penalty2)
     
     def compute_loss(self, x: np.ndarray) -> float:
-        """
-        Compute weighted mean squared percentage error between market and model prices.
-        
-        Parameters:
-        -----------
-        x : np.ndarray
-            Unconstrained optimization variables
-            
-        Returns:
-        --------
-        float : Total loss (weighted RMSE + Feller penalty)
-        """
+    
         self.n_calls += 1
         
         try:
-            # Transform to constrained parameters
+    
             params = self.transform_params(x)
-            
-            # Price all options using Double Heston model
+
             model_prices = []
             for opt in self.market_options:
                 try:
@@ -219,54 +133,35 @@ class DoubleHestonJumpCalibrator:
                     )
                     price = dh.pricing()
                     
-                    # Handle invalid prices
                     if np.isnan(price) or np.isinf(price) or price <= 0:
                         return 1e10
                     
                     model_prices.append(price)
                     
                 except Exception as e:
-                    # Pricing failed for this option
                     return 1e10
             
             model_prices = np.array(model_prices)
             
-            # Compute weighted mean squared percentage error
             relative_errors = (model_prices - self.market_prices) / self.market_prices
             mse = np.mean(relative_errors**2)
-            
-            # Add Feller condition penalty
+
             feller_penalty = self.compute_feller_penalty(params)
             
             total_loss = mse + feller_penalty
             
-            # Track best loss
             if total_loss < self.best_loss:
                 self.best_loss = total_loss
             
             return total_loss
             
         except Exception as e:
-            # Catch any unexpected errors
+    
             return 1e10
     
     def get_initial_guess(self, guess_type: int = 0) -> np.ndarray:
-        """
-        Generate initial parameter guess for optimization.
-        
-        Parameters:
-        -----------
-        guess_type : int
-            0 = Default reasonable parameters
-            1 = Random perturbation around defaults
-            2 = ATM volatility-informed guess
-            
-        Returns:
-        --------
-        np.ndarray : Initial unconstrained variables
-        """
+     
         if guess_type == 0:
-            # Default: typical market parameters
             params = {
                 'v1_0': 0.04, 'kappa1': 2.5, 'theta1': 0.04, 'sigma1': 0.3, 'rho1': -0.7,
                 'v2_0': 0.04, 'kappa2': 0.5, 'theta2': 0.04, 'sigma2': 0.2, 'rho2': -0.5,
@@ -274,7 +169,7 @@ class DoubleHestonJumpCalibrator:
             }
             
         elif guess_type == 1:
-            # Random perturbation (±30%)
+
             params = {
                 'v1_0': 0.04 * np.random.uniform(0.7, 1.3),
                 'kappa1': 2.5 * np.random.uniform(0.7, 1.3),
@@ -292,14 +187,14 @@ class DoubleHestonJumpCalibrator:
             }
             
         else:  # guess_type == 2
-            # ATM-implied volatility informed guess
+
             atm_options = [opt for opt in self.market_options 
                           if 0.95 < opt['strike']/self.spot < 1.05]
             
             if atm_options:
                 avg_price = np.mean([opt['price'] for opt in atm_options])
                 avg_maturity = np.mean([opt['maturity'] for opt in atm_options])
-                # Rough implied vol estimate
+       
                 implied_var = (avg_price / self.spot) / np.sqrt(avg_maturity)
                 implied_var = max(0.01, min(0.1, implied_var))
             else:
@@ -316,35 +211,19 @@ class DoubleHestonJumpCalibrator:
         return self.inverse_transform_params(params)
     
     def calibrate(self, maxiter: int = 300, multi_start: int = 3) -> CalibrationResult:
-        """
-        Calibrate model parameters using L-BFGS-B optimization with multiple starts.
-        
-        Parameters:
-        -----------
-        maxiter : int
-            Maximum iterations per optimization run
-        multi_start : int
-            Number of different initial guesses to try (2-3 recommended)
-            
-        Returns:
-        --------
-        CalibrationResult : Best calibration result
-        """
+       
         start_time = time.time()
         
         best_result = None
         best_loss = np.inf
         
         for start_idx in range(multi_start):
-            # Reset optimization statistics
             self.n_calls = 0
             self.best_loss = np.inf
             
-            # Get initial guess
             x0 = self.get_initial_guess(guess_type=start_idx % 3)
             
             try:
-                # Run L-BFGS-B optimization
                 result = minimize(
                     fun=self.compute_loss,
                     x0=x0,
@@ -357,14 +236,11 @@ class DoubleHestonJumpCalibrator:
                     }
                 )
                 
-                # Check if this is the best result so far
                 if result.fun < best_loss:
                     best_loss = result.fun
                     
-                    # Transform to parameters
                     params = self.transform_params(result.x)
                     
-                    # Compute final model prices
                     model_prices = []
                     for opt in self.market_options:
                         dh = DoubleHeston(
@@ -390,7 +266,7 @@ class DoubleHestonJumpCalibrator:
                         model_prices.append(dh.pricing())
                     
                     best_result = CalibrationResult(
-                        date='',  # Will be set by caller
+                        date='',  
                         spot=self.spot,
                         risk_free=self.risk_free_rate,
                         parameters=params,
@@ -405,10 +281,8 @@ class DoubleHestonJumpCalibrator:
                     )
                     
             except Exception as e:
-                # This start failed, try next one
                 continue
         
-        # If all starts failed, return failure result
         if best_result is None:
             best_result = CalibrationResult(
                 date='',
@@ -431,89 +305,56 @@ class DoubleHestonJumpCalibrator:
 def fetch_options_for_date(ticker: str, date: datetime, 
                            min_moneyness: float = 0.8, 
                            max_moneyness: float = 1.2) -> Optional[Dict]:
-    """
-    Fetch historical option prices for a specific date using yfinance.
-    
-    Parameters:
-    -----------
-    ticker : str
-        Ticker symbol (e.g., 'SPY', '^SPX')
-    date : datetime
-        Target date for option data
-    min_moneyness : float
-        Minimum strike/spot ratio to include
-    max_moneyness : float
-        Maximum strike/spot ratio to include
-        
-    Returns:
-    --------
-    dict or None : Dictionary with spot, risk_free, options list, or None if data unavailable
-    """
     try:
         import yfinance as yf
         
-        # Get ticker object
+
         stock = yf.Ticker(ticker)
-        
-        # Get spot price for the date
+
         hist = stock.history(start=date, end=date + timedelta(days=1))
         if hist.empty:
             return None
         
         spot = float(hist['Close'].iloc[0])
-        
-        # Approximate risk-free rate (use 10-year treasury rate, or default to 3%)
-        # For production, fetch from FRED or other source
-        risk_free = 0.03  # Approximate for 2022-2024 period
-        
-        # Get option chain (note: yfinance only provides current options, not historical)
-        # For true historical data, need a paid data provider
-        # This is a simplified example - adjust based on your data source
+
+        risk_free = 0.03  
+   e
         
         try:
-            # Get available expiration dates
             expirations = stock.options
             if not expirations:
                 return None
             
             options_data = []
             
-            # Try to get 3 different maturities
             target_days = [30, 90, 180]
             selected_expirations = []
             
             for target in target_days:
                 target_date = date + timedelta(days=target)
-                # Find closest expiration
                 closest = min(expirations, 
                              key=lambda x: abs((datetime.strptime(x, '%Y-%m-%d') - target_date).days))
                 if closest not in selected_expirations:
                     selected_expirations.append(closest)
             
-            # Fetch options for selected expirations
             for exp_date in selected_expirations[:3]:
                 chain = stock.option_chain(exp_date)
                 calls = chain.calls
                 
-                # Calculate maturity in years
                 exp_datetime = datetime.strptime(exp_date, '%Y-%m-%d')
                 maturity = (exp_datetime - date).days / 365.0
                 
-                # Filter by moneyness
                 calls = calls[
                     (calls['strike'] >= spot * min_moneyness) & 
                     (calls['strike'] <= spot * max_moneyness)
                 ]
-                
-                # Select options with reasonable volume/open interest
                 calls = calls[
                     (calls['volume'] > 10) & 
                     (calls['openInterest'] > 50)
                 ]
                 
-                # Create option dictionaries
                 for _, row in calls.iterrows():
-                    # Use mid-price
+    
                     bid = row['bid']
                     ask = row['ask']
                     if bid > 0 and ask > 0:
@@ -530,7 +371,6 @@ def fetch_options_for_date(ticker: str, date: datetime,
                             'open_interest': row['openInterest']
                         })
             
-            # Need at least 10 options for reasonable calibration
             if len(options_data) < 10:
                 return None
             
@@ -555,28 +395,7 @@ def run_historical_calibrations(
     checkpoint_freq: int = 50,
     save_path: str = 'lbfgs_calibrations.pkl'
 ) -> List[CalibrationResult]:
-    """
-    Run L-BFGS calibration on historical market data for multiple dates.
-    
-    Parameters:
-    -----------
-    ticker : str
-        Stock ticker symbol
-    start_date : str
-        Start date (YYYY-MM-DD)
-    end_date : str
-        End date (YYYY-MM-DD)
-    max_dates : int
-        Maximum number of dates to calibrate
-    checkpoint_freq : int
-        Save checkpoint every N calibrations
-    save_path : str
-        Path to save final results
-        
-    Returns:
-    --------
-    list : List of CalibrationResult objects
-    """
+
     print("="*70)
     print("L-BFGS HISTORICAL CALIBRATION - DOUBLE HESTON + JUMPS")
     print("="*70)
@@ -587,14 +406,14 @@ def run_historical_calibrations(
     print(f"  Checkpoint frequency: every {checkpoint_freq} calibrations")
     print(f"  Save path: {save_path}")
     
-    # Generate trading dates (weekdays only, approximate)
+
     start_dt = datetime.strptime(start_date, '%Y-%m-%d')
     end_dt = datetime.strptime(end_date, '%Y-%m-%d')
     
     all_dates = []
     current = start_dt
     while current <= end_dt and len(all_dates) < max_dates:
-        # Skip weekends
+
         if current.weekday() < 5:
             all_dates.append(current)
         current += timedelta(days=1)
@@ -614,7 +433,6 @@ def run_historical_calibrations(
         try:
             print(f"\n[{i}/{len(all_dates)}] Calibrating: {date_str}")
             
-            # Fetch option data
             options_data = fetch_options_for_date(ticker, date)
             
             if options_data is None:
@@ -625,22 +443,19 @@ def run_historical_calibrations(
             print(f"  Spot: ${options_data['spot']:.2f}")
             print(f"  Options: {len(options_data['options'])} contracts")
             
-            # Create calibrator
             calibrator = DoubleHestonJumpCalibrator(
                 spot=options_data['spot'],
                 risk_free_rate=options_data['risk_free'],
                 market_options=options_data['options']
             )
-            
-            # Run calibration with 2 multi-starts
+
             result = calibrator.calibrate(maxiter=300, multi_start=2)
             result.date = date_str
             
             if result.success and result.final_loss < 1e9:
                 successful += 1
                 results.append(result)
-                
-                # Compute pricing error statistics
+            
                 rel_errors = np.abs((result.model_prices - result.market_prices) / result.market_prices) * 100
                 mean_error = np.mean(rel_errors)
                 
@@ -653,7 +468,6 @@ def run_historical_calibrations(
             
             total_time += result.calibration_time
             
-            # Save checkpoint
             if len(results) > 0 and len(results) % checkpoint_freq == 0:
                 checkpoint_path = save_path.replace('.pkl', f'_checkpoint_{len(results)}.pkl')
                 with open(checkpoint_path, 'wb') as f:
@@ -668,15 +482,12 @@ def run_historical_calibrations(
             failed += 1
             print(f"  ✗ Error: {str(e)}")
             continue
-    
-    # Save final results
     if results:
         with open(save_path, 'wb') as f:
             pickle.dump(results, f)
         print(f"\n{'='*70}")
         print(f"✓ Final results saved: {save_path}")
-    
-    # Print summary statistics
+        
     print("\n" + "="*70)
     print("L-BFGS HISTORICAL CALIBRATION COMPLETE")
     print("="*70)
@@ -699,15 +510,12 @@ def run_historical_calibrations(
         print(f"  Min loss: {np.min(losses):.6f}")
         print(f"  Max loss: {np.max(losses):.6f}")
         
-        # Parameter statistics
         print(f"\nParameter Statistics (successful calibrations):")
         param_names = results[0].parameters.keys()
         for param in param_names:
             values = [r.parameters[param] for r in results]
             print(f"  {param:10s}: mean={np.mean(values):.4f}, std={np.std(values):.4f}, "
                   f"min={np.min(values):.4f}, max={np.max(values):.4f}")
-        
-        # Pricing error statistics
         all_errors = []
         for r in results:
             rel_errors = np.abs((r.model_prices - r.market_prices) / r.market_prices) * 100
@@ -736,12 +544,10 @@ if __name__ == "__main__":
     print("DOUBLE HESTON + JUMP DIFFUSION L-BFGS CALIBRATOR")
     print("="*70)
     
-    # Mode selection
     import sys
     
     if len(sys.argv) > 1 and sys.argv[1] == 'test':
-        # Test mode: Single date calibration
-        print("\n🧪 TEST MODE: Single Date Calibration")
+        print("\n TEST MODE: Single Date Calibration")
         print("="*70)
         
         test_date = datetime(2023, 6, 15)
@@ -750,7 +556,7 @@ if __name__ == "__main__":
         options_data = fetch_options_for_date('SPY', test_date)
         
         if options_data is None:
-            print("❌ Failed to fetch option data for test date")
+            print(" Failed to fetch option data for test date")
             print("Note: yfinance only provides current option data, not historical")
             print("For true historical calibration, use a paid data provider (e.g., OptionMetrics)")
             sys.exit(1)
@@ -782,7 +588,6 @@ if __name__ == "__main__":
             for name, value in result.parameters.items():
                 print(f"  {name:10s} = {value:.6f}")
             
-            # Pricing errors
             rel_errors = np.abs((result.model_prices - result.market_prices) / result.market_prices) * 100
             print(f"\nPricing Accuracy:")
             print(f"  Mean absolute error: {np.mean(rel_errors):.2f}%")
@@ -795,10 +600,10 @@ if __name__ == "__main__":
         print(f"{'='*70}\n")
         
     else:
-        # Full calibration mode
-        print("\n🚀 FULL CALIBRATION MODE: 500 Historical Dates")
+
+        print("\n FULL CALIBRATION MODE: 500 Historical Dates")
         print("="*70)
-        print("\n⚠️  WARNING: This will take 16-25 hours to complete!")
+        print("\n WARNING: This will take 16-25 hours to complete!")
         print("Checkpoints will be saved every 50 calibrations.")
         print("\nPress Ctrl+C to stop at any time (progress will be saved).\n")
         
@@ -806,8 +611,7 @@ if __name__ == "__main__":
         if response.lower() != 'yes':
             print("Calibration cancelled.")
             sys.exit(0)
-        
-        # Run full historical calibration
+
         calibrations = run_historical_calibrations(
             ticker='SPY',
             start_date='2022-01-03',
