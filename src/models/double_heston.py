@@ -1,6 +1,5 @@
 import numpy as np
 
-# Helper for normal CDF without scipy
 def norm_cdf(x):
     """Standard normal CDF approximation"""
     return 0.5 * (1 + np.tanh(np.sqrt(2/np.pi) * (x + 0.044715 * x**3)))
@@ -51,20 +50,17 @@ class DoubleHeston():
         Double Heston characteristic function from paper
         
         Parameters:
-        -----------
         phi : complex
             Frequency parameter
         tau : float
             Time to maturity
             
         Returns:
-        --------
         cf : complex
             Characteristic function value
         """
-        i = 1j  # Imaginary unit
-        
-        # Process 1
+        i = 1j  
+           
         d1 = np.sqrt((self.kappa1 - self.rho1 * self.sigma1 * i * phi)**2 + 
                      self.sigma1**2 * phi * (phi + i))
         
@@ -74,7 +70,6 @@ class DoubleHeston():
         B1 = ((self.kappa1 - self.rho1 * self.sigma1 * i * phi - d1) / self.sigma1**2) * \
              ((1 - np.exp(-d1 * tau)) / (1 - g1 * np.exp(-d1 * tau)))
         
-        # Process 2
         d2 = np.sqrt((self.kappa2 - self.rho2 * self.sigma2 * i * phi)**2 + 
                      self.sigma2**2 * phi * (phi + i))
         
@@ -84,8 +79,6 @@ class DoubleHeston():
         B2 = ((self.kappa2 - self.rho2 * self.sigma2 * i * phi - d2) / self.sigma2**2) * \
              ((1 - np.exp(-d2 * tau)) / (1 - g2 * np.exp(-d2 * tau)))
         
-        # Compute A(τ, φ) with jump compensation for risk-neutral measure
-        # Jump compensator: exp(μⱼ + 0.5*σⱼ²) - 1 ensures E[S_T] = S_0*exp(rT)
         jump_compensator = np.exp(self.mu_j + 0.5 * self.sigma_j**2) - 1
         A = (self.r - self.q - self.lambda_j * jump_compensator) * i * phi * tau
         
@@ -97,9 +90,6 @@ class DoubleHeston():
              ((self.kappa2 - self.rho2 * self.sigma2 * i * phi - d2) * tau - 
               2 * np.log((1 - g2 * np.exp(-d2 * tau)) / (1 - g2)))
         
-        # Characteristic function of log(S_T/S_0), not log(S_T)
-        # The COS method expects CF of the log-return
-        # Jump component: Merton jump-diffusion CF
         cf_jump = np.exp(self.lambda_j * tau * (np.exp(i * phi * self.mu_j - 0.5 * self.sigma_j**2 * phi**2) - 1))
         cf_heston = np.exp(A + B1 * self.v01 + B2 * self.v02)
         
@@ -134,16 +124,14 @@ class DoubleHeston():
         c2_jump = self.lambda_j * self.T * (self.sigma_j**2 + self.mu_j**2)
 
 
-            
-            # Combine cumulants (independent factors add)
         c1_total = c1_f1 + c1_f2 + c1_jump
         c2_total = c2_f1 + c2_f2 + c2_jump
             
-            # Truncation range
+            
         a = c1_total - L * np.sqrt(np.abs(c2_total))
         b = c1_total + L * np.sqrt(np.abs(c2_total))
             
-            # Ensure strike is within range (in log-return space)
+
         log_K = np.log(self.K / self.S0)
         a = min(a, log_K - 0.1)
         b = max(b, log_K + 0.1)
@@ -170,34 +158,29 @@ class DoubleHeston():
         return (1.0 / u) * (np.sin(u * (d - a)) - np.sin(u * (c - a)))
 
     def pricing(self, N=128):
-        # For COS method, work in log-return space x = log(S_T/S_0)
-        # so log(K) becomes log(K/S0)
+
         log_K = np.log(self.K / self.S0)
         a, b = self.truncationRange()
 
         k_values = np.arange(N)
         u_values = k_values * np.pi / (b - a)
 
-        # CF of log-return x = log(S_T/S_0)
         phi_k = np.array([self.characteristic_function(u, self.T) for u in u_values])
 
         V_k = np.zeros(N)
         if self.option_type == "C":
-            # Call payoff: max(S_T - K, 0) = max(S0*exp(x) - K, 0)
-            # = S0*exp(x) - K for x > log(K/S0)
+        
             for k in range(N):
                 chi = self.chi_k(k, c=log_K, d=b, a=a, b=b)
                 psi = self.psi_k(k, c=log_K, d=b, a=a, b=b)
                 V_k[k] = (2.0 / (b - a)) * (self.S0 * chi - self.K * psi)
         else:
-            # Put payoff: max(K - S_T, 0) = max(K - S0*exp(x), 0)
-            # = K - S0*exp(x) for x < log(K/S0)
+        
             for k in range(N):
                 chi = self.chi_k(k, c=a, d=log_K, a=a, b=b)
                 psi = self.psi_k(k, c=a, d=log_K, a=a, b=b)
                 V_k[k] = (2.0 / (b - a)) * (self.K * psi - self.S0 * chi)
         
-        # COS summation
         summands = np.real(phi_k * np.exp(-1j * u_values * a)) * V_k
         summands[0] *= 0.5
         
@@ -212,13 +195,13 @@ if __name__ == "__main__":
     print("DOUBLE HESTON + JUMP DIFFUSION MODEL - PRICING DEMONSTRATION")
     print("="*70)
     
-    # Market parameters
+    
     s = 100
     k = 100
     t = 1.0
     r = 0.05
     
-    # Double Heston parameters
+    
     v1 = 0.04
     kappa1 = 2.0
     theta1 = 0.04
@@ -243,21 +226,16 @@ if __name__ == "__main__":
     print(f"  Factor 2 (Slow Mean-Reverting):")
     print(f"    v2={v2}, κ2={kappa2}, θ2={theta2}, σ2={sigma2}, ρ2={rho2}")
     
-    # ============================================
-    # JUMP DIFFUSION PARAMETERS (NEW)
-    # ============================================
-    lambda_j = 0.5      # 0.5 jumps per year on average
-    mu_j = -0.05        # Negative mean jump (downward jumps)
-    sigma_j = 0.10      # Jump volatility
+    lambda_j = 0.5      
+    mu_j = -0.05        
+    sigma_j = 0.10     
     
     print(f"\nJump Diffusion Parameters:")
     print(f"  λ (Jump Intensity):     {lambda_j} jumps/year")
     print(f"  μⱼ (Mean Jump Size):    {mu_j*100:.2f}%")
     print(f"  σⱼ (Jump Volatility):   {sigma_j*100:.2f}%")
     
-    # ============================================
-    # PRICING WITH JUMPS
-    # ============================================
+   
     print(f"\n" + "-"*70)
     print("PRICING WITH JUMP DIFFUSION:")
     print("-"*70)
@@ -277,9 +255,6 @@ if __name__ == "__main__":
     print(f"  Call Price: ${call_price_jumps:.4f}")
     print(f"  Put Price:  ${put_price_jumps:.4f}")
     
-    # ============================================
-    # COMPARE WITH NO-JUMP MODEL
-    # ============================================
     print(f"\n" + "-"*70)
     print("IMPACT OF JUMPS:")
     print("-"*70)
@@ -308,9 +283,6 @@ if __name__ == "__main__":
     print(f"    Call: ${call_price_jumps - call_price_no_jump:.4f}")
     print(f"    Put:  ${put_price_jumps - put_price_no_jump:.4f}")
     
-    # ============================================
-    # PUT-CALL PARITY CHECK
-    # ============================================
     print(f"\n" + "-"*70)
     print("PUT-CALL PARITY CHECK (WITH JUMPS):")
     print("-"*70)
