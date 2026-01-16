@@ -7,6 +7,8 @@
 
 This repository implements **ultra-precise calibration** of the Double Heston model with jump diffusion to market option prices using the **L-BFGS-B optimization algorithm**. The model captures complex volatility dynamics through two correlated variance factors plus price jumps.
 
+> **📌 Note for Academic Reviewers**: If you are reviewing this repository as part of a university application and notice differences from results presented in submitted materials, please note that the project has undergone significant refinements to fix computational bugs and improve accuracy. The current results reflect corrected implementations and are more reliable than earlier versions.
+
 ### Key Results
 
 | Method | Mean Error | Runtime | Use Case |
