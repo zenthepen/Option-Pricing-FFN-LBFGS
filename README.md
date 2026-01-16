@@ -231,12 +231,6 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 
 Contributions are welcome! Please feel free to submit a Pull Request.
 
-## Acknowledgments
-
-- COS method implementation based on Fang & Oosterlee (2008)
-- Double Heston model follows Christoffersen et al. (2009)
-- L-BFGS-B algorithm from SciPy's optimize module
-
 ## Contact
 
 For questions or issues, please open an issue on GitHub.
