@@ -188,6 +188,28 @@ The `results/` folder contains evaluation data:
 - `lbfgs_actual_results.json`: Pure L-BFGS results (5 samples)
 - `hybrid_actual_results.json`: Hybrid FFN→L-BFGS results (10 samples)
 
+## Future Plans
+
+We are actively working to improve the calibration pipeline:
+
+### Expanded Training Dataset
+- Scale from 500 to **10,000+ synthetic calibration samples**
+- Incorporate diverse market regimes (low/high volatility, crisis periods)
+- Validate on real market data from options exchanges
+
+### Advanced Optimization Techniques
+- **Second-order optimization**: Explore L-BFGS variants and Newton-CG methods
+- **Adaptive learning rates**: Implement techniques like AdaGrad or Adam for FFN training
+- **Hybrid architecture improvements**: Multi-stage warm-starting with progressive refinement
+
+### Expected Improvements
+With larger training sets and better optimization:
+- FFN error: Target **< 1%** (currently 11.25%)
+- Warm start effectiveness: Reduce L-BFGS iterations by **50-70%**
+- Hybrid runtime: Target **< 60s** per calibration (currently 113.9s)
+
+These enhancements aim to make the FFN warm start genuinely beneficial, bridging the gap between pure FFN speed and L-BFGS precision.
+
 ## Citation
 
 If you use this code in your research, please cite:
